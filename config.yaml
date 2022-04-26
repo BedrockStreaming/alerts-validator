@@ -1,0 +1,7 @@
+listenAddress: 0.0.0.0      # Listen address for metrics endpoint
+listenPort: 9345            # Listen port for metrics endpoint
+interval: 10                # Interval between 
+servers:
+  - tenant: "my_tenant"                                             # Added in metric label
+    alertUrl: https://vmalert.cluster.local.                        # Endpoint to get alerts
+    selectUrl: https://vm.cluster.local./select/000/prometheus      # Endpoint to validate metrics
