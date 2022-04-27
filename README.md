@@ -10,9 +10,17 @@ Continuous loop wich get alerts from Alert endpoint, then analyze them with Sele
 GOOS=linux GOARCH=amd64 go build -o alerts-validator-linux-amd64
 ```
 
-## Metrics
+## Compatibility
 
 Works with Victoria Metrics v1.76.0
+
+## Metrics
+
+```
+alertsvalidator_present_over_1day
+alertsvalidator_present_over_30days
+alertsvalidator_present_over_90days
+```
 
 ## Configuration
 

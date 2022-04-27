@@ -64,32 +64,32 @@ var (
 
 	metric_present_1_day = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "alert_validator_present_over_1days",
+			Name: "alertsvalidator_present_over_1day",
 			Help: "does the alert's metrics contains data point over 1 day",
 		},
 		[]string{
 			"tenant",
-			"alert_name",
+			"alertname",
 		},
 	)
 	metric_present_30_days = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "alert_validator_present_over_30days",
+			Name: "alertsvalidator_present_over_30days",
 			Help: "does the alert's metric contains data point over the last 30 days",
 		},
 		[]string{
 			"tenant",
-			"alert_name",
+			"alertname",
 		},
 	)
 	metric_present_90_days = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "alert_validator_present_over_90days",
+			Name: "alertsvalidator_present_over_90days",
 			Help: "does the alert's metric contains data point over the last 90 days",
 		},
 		[]string{
 			"tenant",
-			"alert_name",
+			"alertname",
 		},
 	)
 )
