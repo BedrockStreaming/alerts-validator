@@ -80,8 +80,12 @@ validityCheckIntervals:
 ```
 
 ```
-alertsvalidator_validity_range{range_from="1h",range_to="168h",alertname="my_alert"} 0 # Invalid
-alertsvalidator_validity_range{range_from="168h",range_to="672h",alertname="my_alert"} 1 # Valid
+alertsvalidator_validity_range{range_from="1h",range_to="168h",alertname="my_alert",status="valid"}     0
+alertsvalidator_validity_range{range_from="1h",range_to="168h",alertname="my_alert",status="invalid"}   1 # Invalid
+
+
+alertsvalidator_validity_range{range_from="168h",range_to="672h",alertname="my_alert",status="valid"}   1 # Valid
+alertsvalidator_validity_range{range_from="168h",range_to="672h",alertname="my_alert",status="invalid"} 0
 ```
 
 ## Logs

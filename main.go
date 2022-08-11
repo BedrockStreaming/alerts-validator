@@ -97,6 +97,7 @@ func main() {
 			"alertname",
 			"range_from",
 			"range_to",
+			"status",
 		}, config.LabelKeys...),
 	)
 
@@ -190,12 +191,15 @@ func checkRules(server Server) {
 							zDictVector.Bool(vector, true)
 						}
 					}
-					labels := append([]string{rule.Name, interval, config.ValidityCheckIntervals[key+1]}, server.LabelValues...)
+					labelsValid := append([]string{rule.Name, interval, config.ValidityCheckIntervals[key+1], "valid"}, server.LabelValues...)
+					labelsInvalid := append([]string{rule.Name, interval, config.ValidityCheckIntervals[key+1], "invalid"}, server.LabelValues...)
 					if !valid {
-						gauge.WithLabelValues(labels...).Set(0)
+						gauge.WithLabelValues(labelsValid...).Set(0)
+						gauge.WithLabelValues(labelsInvalid...).Set(1)
 						zDictValid.Bool(fmt.Sprintf("%s-%s", interval, config.ValidityCheckIntervals[key+1]), false)
 					} else {
-						gauge.WithLabelValues(labels...).Set(1)
+						gauge.WithLabelValues(labelsValid...).Set(1)
+						gauge.WithLabelValues(labelsInvalid...).Set(0)
 						zDictValid.Bool(fmt.Sprintf("%s-%s", interval, config.ValidityCheckIntervals[key+1]), true)
 					}
 					zDictVectorPresent.Dict(fmt.Sprintf("%s-%s", interval, config.ValidityCheckIntervals[key+1]), zDictVector)
