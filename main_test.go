@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"reflect"
 	"testing"
@@ -58,7 +58,7 @@ func Test_existingMetric(t *testing.T) {
 			response: func(*http.Request) (*http.Response, error) {
 				return &http.Response{
 					StatusCode: 500,
-					Body:       ioutil.NopCloser(bytes.NewReader([]byte(``))),
+					Body:       io.NopCloser(bytes.NewReader([]byte(``))),
 				}, nil
 			},
 		},
@@ -72,7 +72,7 @@ func Test_existingMetric(t *testing.T) {
 			response: func(*http.Request) (*http.Response, error) {
 				return &http.Response{
 					StatusCode: 200,
-					Body: ioutil.NopCloser(bytes.NewReader([]byte(`
+					Body: io.NopCloser(bytes.NewReader([]byte(`
 					{
 						"data":{
 							"result": []
@@ -91,7 +91,7 @@ func Test_existingMetric(t *testing.T) {
 			response: func(*http.Request) (*http.Response, error) {
 				return &http.Response{
 					StatusCode: 200,
-					Body: ioutil.NopCloser(bytes.NewReader([]byte(`
+					Body: io.NopCloser(bytes.NewReader([]byte(`
 					{
 						"data":{
 							"result": [
@@ -148,7 +148,7 @@ func Test_getRules(t *testing.T) {
 			response: func(*http.Request) (*http.Response, error) {
 				return &http.Response{
 					StatusCode: 500,
-					Body:       ioutil.NopCloser(bytes.NewReader([]byte(``))),
+					Body:       io.NopCloser(bytes.NewReader([]byte(``))),
 				}, nil
 			},
 		},
@@ -161,7 +161,7 @@ func Test_getRules(t *testing.T) {
 			response: func(*http.Request) (*http.Response, error) {
 				return &http.Response{
 					StatusCode: 200,
-					Body: ioutil.NopCloser(bytes.NewReader([]byte(`
+					Body: io.NopCloser(bytes.NewReader([]byte(`
 					{
 					}`))),
 				}, nil
@@ -176,7 +176,7 @@ func Test_getRules(t *testing.T) {
 			response: func(*http.Request) (*http.Response, error) {
 				return &http.Response{
 					StatusCode: 200,
-					Body: ioutil.NopCloser(bytes.NewReader([]byte(`
+					Body: io.NopCloser(bytes.NewReader([]byte(`
 					{
 						"data":{
 							"groups": [
