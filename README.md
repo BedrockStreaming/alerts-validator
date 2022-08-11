@@ -38,7 +38,11 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o alerts-validator-linux-amd64
 
 ## Compatibility
 
-Works from Victoria Metrics v1.76.0 to last
+Works with:
+- Victoria Metrics from v1.76.0 to last
+- Prometheus from v2.33.0 to last
+
+Other products and versions have not been tested yet.
 
 ## Configuration
 
@@ -56,16 +60,16 @@ Usage of alerts-validator:
 listenAddress: 0.0.0.0      # Listen address for metrics endpoint
 listenPort: 9345            # Listen port for metrics endpoint
 computeInterval: 168h       # Interval between 2 computes (Valid time units are "s", "m", "h". )
-validityCheckIntervals:     # Check if there are datapoints betwen 2 intervals (Valid time units are "s", "m", "h". )
+validityCheckIntervals:     # Check if there are datapoints betwen 2 intervals (Valid time units are "s", "m", "h". Truncated to minute. )
 - 1h
 - 168h
 labelKeys:
 - tenant
 servers:
-  - labelValues:                                                   # Added in metric label
+  - labelValues:                                                  # Added in metric label
     - my_tenant
-    alertUrl: https://vmalert.cluster.local.                       # Endpoint to get alerts
-    selectUrl: https://vm.cluster.local./select/000/prometheus     # Endpoint to validate metrics
+    ruleUrl: https://vmalert.cluster.local.                       # Endpoint to get rules           /api/v1/rules
+    queryUrl: https://vm.cluster.local./select/000/prometheus     # Endpoint to validate metrics    /api/v1/query
 ```
 
 ## Metrics

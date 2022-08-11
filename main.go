@@ -36,8 +36,8 @@ type Config struct {
 
 type Server struct {
 	LabelValues []string `yaml:"labelValues"`
-	AlertURL    string   `yaml:"alertUrl"`
-	SelectURL   string   `yaml:"selectUrl"`
+	RuleURL     string   `yaml:"ruleUrl"`
+	QueryURL    string   `yaml:"queryUrl"`
 }
 
 type Groups struct {
@@ -59,6 +59,9 @@ type Query struct {
 			Value  interface{} `json:"value"`
 		} `json:"result"`
 	} `json:"data"`
+	Status    string `json:"status"`
+	Error     string `json:"error"`
+	ErrorType string `json:"errorTYpe"`
 }
 
 var (
@@ -131,7 +134,7 @@ func loadConf(confPath string) *Config {
 
 func checkRules(server Server) {
 	for {
-		groups := getRules(server.AlertURL)
+		groups := getRules(server.RuleURL)
 		for _, group := range groups.Data.Groups {
 			for _, rule := range group.Rules {
 				if rule.Type != "alerting" {
@@ -175,15 +178,15 @@ func checkRules(server Server) {
 							log.Error().Err(err).Msg("Something is wrong with Validity Check Intervals")
 							os.Exit(1)
 						}
-						dur := time.Until(time.Now().Add(dur1).Add(-dur2))
-						check := fmt.Sprintf("present_over_time(%s[%s]) offset %s", vector, dur.String(), interval)
+						dur := time.Until(time.Now().Add(dur1).Add(-dur2)).Truncate(time.Minute)
+						check := fmt.Sprintf("present_over_time(%s[%s] offset %s)", vector, dur.String(), interval)
 						_, err = metricsql.Parse(check)
 						if err != nil {
 							log.Error().Err(err).Str("check", check).Msg("Something is wrong with Validity Check Intervals")
 							os.Exit(1)
 						}
 						log.Debug().Str("alertname", rule.Name).Str("check", check).Send()
-						if !existingMetric(check, server.SelectURL) {
+						if !existingMetric(check, server.QueryURL) {
 							zDictVector.Bool(vector, false)
 							valid = false
 						} else {
@@ -230,15 +233,15 @@ func getRules(server string) Groups {
 	if res.StatusCode != 200 {
 		b, err := io.ReadAll(res.Body)
 		if err != nil {
-			log.Fatal().Err(err).Msg("Can't get rules, and api response body can't be read")
+			log.Fatal().Err(err).Str("server", server).Msg("Can't get rules, and api response body can't be read")
 		} else {
-			log.Error().Str("body", string(b)).Msg("Can't get rules")
+			log.Error().Str("server", server).Str("body", string(b)).Msg("Can't get rules")
 		}
 	} else {
 		err := json.NewDecoder(res.Body).Decode(&gr)
 
 		if err != nil {
-			log.Error().Err(err).Msg("Can't get rules")
+			log.Error().Str("server", server).Err(err).Msg("Can't get rules")
 		}
 	}
 
@@ -256,15 +259,19 @@ func existingMetric(query, server string) bool {
 	var qu Query
 
 	if err != nil {
-		log.Error().Err(err).Msg("Can't query VM api")
+		log.Error().Err(err).Str("server", server).Msg("Can't query VM api")
 		return false
 	}
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&qu)
 
 	if err != nil {
-		log.Error().Err(err).Msg("Can't decode VM api response")
+		log.Error().Err(err).Str("server", server).Msg("Can't decode VM api response")
 		return false
+	}
+
+	if qu.Status == "error" {
+		log.Error().Str("server", server).Str("error", qu.Error).Str("errorType", qu.ErrorType).Send()
 	}
 
 	return len(qu.Data.Result) > 0
