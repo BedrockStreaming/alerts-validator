@@ -33,7 +33,7 @@ You can now be alerted that `HostOutOfMemory` alerting rule need to be updated.
 ## Build
 
 ```sh
-GOOS=linux GOARCH=amd64 go build -o alerts-validator-linux-amd64
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o alerts-validator-linux-amd64
 ```
 
 ## Compatibility
