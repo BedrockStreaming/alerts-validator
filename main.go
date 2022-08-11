@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -116,7 +115,7 @@ func main() {
 }
 
 func loadConf(confPath string) *Config {
-	yamlFile, err := ioutil.ReadFile(confPath)
+	yamlFile, err := os.ReadFile(confPath)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Can't read config file")
 		os.Exit(1)
