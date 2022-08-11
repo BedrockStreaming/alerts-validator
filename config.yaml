@@ -1,14 +1,17 @@
 listenAddress: 0.0.0.0      # Listen address for metrics endpoint
-listenPort: 9345            # Listen port for metrics endpoint
+listenPort: 9245            # Listen port for metrics endpoint
 computeInterval: 168h       # Interval between 2 computes
 validityCheckIntervals:
 - 1h
 - 168h
-- 672h
 labelKeys:
-- tenant
+- product
 servers:
   - labelValues:                                                   # Added in metric label
-    - my_tenant                                             
-    alertUrl: https://vmalert.cluster.local.                        # Endpoint to get alerts
-    selectUrl: https://vm.cluster.local./select/000/prometheus      # Endpoint to validate metrics
+    - victoria-metrics
+    ruleUrl: https://vmalert.cluster.local.                        # Endpoint to get rules
+    queryUrl: https://vm.cluster.local./select/000/prometheus      # Endpoint to validate metrics
+  - labelValues:                                                   # Added in metric label
+    - prometheus
+    ruleUrl: https://prometheus.cluster.local.                     # Endpoint to get rules
+    queryUrl: https://prometheus.cluster.local.                    # Endpoint to validate metrics
