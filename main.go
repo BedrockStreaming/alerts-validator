@@ -134,13 +134,14 @@ func loadConf(confPath string) *Config {
 
 func checkRules(server Server) {
 	for {
+		vectorValidityCache := map[string]bool{}
 		groups := getRules(server.RuleURL)
 		for _, group := range groups.Data.Groups {
 			for _, rule := range group.Rules {
 				if rule.Type != "alerting" {
 					continue
 				}
-				vectors = make([]string, 0)
+				vectors = []string{}
 				expr, err := metricsql.Parse(rule.Expression)
 				metricsql.VisitAll(expr, tree)
 
@@ -168,25 +169,37 @@ func checkRules(server Server) {
 						} else {
 							checkedVector = append(checkedVector, vector)
 						}
-						dur1, err := time.ParseDuration(config.ValidityCheckIntervals[key+1])
-						if err != nil {
-							log.Error().Err(err).Msg("Something is wrong with Validity Check Intervals")
-							os.Exit(1)
+						existingM := false
+
+						// Try to to see if we already checked a vector in this loop
+						if val, ok := vectorValidityCache[fmt.Sprintf("%s[%s-%s]", vector, interval, config.ValidityCheckIntervals[key+1])]; ok {
+							log.Debug().Str("alertname", rule.Name).Str("vector", vector).Bool("incache", true).Send()
+							existingM = val
+						} else {
+							log.Debug().Str("alertname", rule.Name).Str("vector", vector).Bool("incache", false).Send()
+							dur1, err := time.ParseDuration(config.ValidityCheckIntervals[key+1])
+							if err != nil {
+								log.Error().Err(err).Msg("Something is wrong with Validity Check Intervals")
+								os.Exit(1)
+							}
+							dur2, err := time.ParseDuration(interval)
+							if err != nil {
+								log.Error().Err(err).Msg("Something is wrong with Validity Check Intervals")
+								os.Exit(1)
+							}
+							dur := time.Until(time.Now().Add(dur1).Add(-dur2)).Truncate(time.Minute)
+							check := fmt.Sprintf("present_over_time(%s[%s] offset %s)", vector, dur.String(), interval)
+							_, err = metricsql.Parse(check)
+							if err != nil {
+								log.Error().Err(err).Str("check", check).Msg("Something is wrong with Validity Check Intervals")
+								os.Exit(1)
+							}
+							log.Debug().Str("alertname", rule.Name).Str("check", check).Send()
+							existingM = existingMetric(check, server.QueryURL)
+							// Add vector in cache to avoid checking multiple times the same thing
+							vectorValidityCache[fmt.Sprintf("%s[%s-%s]", vector, interval, config.ValidityCheckIntervals[key+1])] = existingM
 						}
-						dur2, err := time.ParseDuration(interval)
-						if err != nil {
-							log.Error().Err(err).Msg("Something is wrong with Validity Check Intervals")
-							os.Exit(1)
-						}
-						dur := time.Until(time.Now().Add(dur1).Add(-dur2)).Truncate(time.Minute)
-						check := fmt.Sprintf("present_over_time(%s[%s] offset %s)", vector, dur.String(), interval)
-						_, err = metricsql.Parse(check)
-						if err != nil {
-							log.Error().Err(err).Str("check", check).Msg("Something is wrong with Validity Check Intervals")
-							os.Exit(1)
-						}
-						log.Debug().Str("alertname", rule.Name).Str("check", check).Send()
-						if !existingMetric(check, server.QueryURL) {
+						if !existingM {
 							zDictVector.Bool(vector, false)
 							valid = false
 						} else {
