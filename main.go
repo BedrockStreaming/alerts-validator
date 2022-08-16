@@ -44,6 +44,7 @@ type Groups struct {
 	Data struct {
 		Groups []struct {
 			Rules []struct {
+				Id         string `json:"id"`
 				Name       string `json:"name"`
 				Expression string `json:"query"`
 				Type       string `json:"type"`
@@ -97,6 +98,7 @@ func main() {
 		},
 		append([]string{
 			"alertname",
+			"alertid",
 			"range_from",
 			"range_to",
 			"status",
@@ -173,10 +175,10 @@ func checkRules(server Server) {
 
 						// Try to to see if we already checked a vector in this loop
 						if val, ok := vectorValidityCache[fmt.Sprintf("%s[%s-%s]", vector, interval, config.ValidityCheckIntervals[key+1])]; ok {
-							log.Debug().Str("alertname", rule.Name).Str("vector", vector).Bool("incache", true).Send()
+							log.Debug().Str("alertname", rule.Name).Str("id", rule.Id).Str("vector", vector).Bool("incache", true).Send()
 							existingM = val
 						} else {
-							log.Debug().Str("alertname", rule.Name).Str("vector", vector).Bool("incache", false).Send()
+							log.Debug().Str("alertname", rule.Name).Str("id", rule.Id).Str("vector", vector).Bool("incache", false).Send()
 							dur1, err := time.ParseDuration(config.ValidityCheckIntervals[key+1])
 							if err != nil {
 								log.Error().Err(err).Msg("Something is wrong with Validity Check Intervals")
@@ -194,7 +196,7 @@ func checkRules(server Server) {
 								log.Error().Err(err).Str("check", check).Msg("Something is wrong with Validity Check Intervals")
 								os.Exit(1)
 							}
-							log.Debug().Str("alertname", rule.Name).Str("check", check).Send()
+							log.Debug().Str("alertname", rule.Name).Str("id", rule.Id).Str("check", check).Send()
 							existingM = existingMetric(check, server.QueryURL)
 							// Add vector in cache to avoid checking multiple times the same thing
 							vectorValidityCache[fmt.Sprintf("%s[%s-%s]", vector, interval, config.ValidityCheckIntervals[key+1])] = existingM
@@ -206,8 +208,8 @@ func checkRules(server Server) {
 							zDictVector.Bool(vector, true)
 						}
 					}
-					labelsValid := append([]string{rule.Name, interval, config.ValidityCheckIntervals[key+1], "valid"}, server.LabelValues...)
-					labelsInvalid := append([]string{rule.Name, interval, config.ValidityCheckIntervals[key+1], "invalid"}, server.LabelValues...)
+					labelsValid := append([]string{rule.Name, rule.Id, interval, config.ValidityCheckIntervals[key+1], "valid"}, server.LabelValues...)
+					labelsInvalid := append([]string{rule.Name, rule.Id, interval, config.ValidityCheckIntervals[key+1], "invalid"}, server.LabelValues...)
 					if !valid {
 						gauge.WithLabelValues(labelsValid...).Set(0)
 						gauge.WithLabelValues(labelsInvalid...).Set(1)
@@ -219,7 +221,7 @@ func checkRules(server Server) {
 					}
 					zDictVectorPresent.Dict(fmt.Sprintf("%s-%s", interval, config.ValidityCheckIntervals[key+1]), zDictVector)
 				}
-				log.Info().Str("alertname", rule.Name).Dict("is_vector_present", zDictVectorPresent).Dict("is_valid", zDictValid).Send()
+				log.Info().Str("alertname", rule.Name).Str("id", rule.Id).Dict("is_vector_present", zDictVectorPresent).Dict("is_valid", zDictValid).Send()
 			}
 		}
 		dur, err := time.ParseDuration(config.ComputeInterval)
