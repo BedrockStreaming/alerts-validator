@@ -90,6 +90,9 @@ alertsvalidator_validity_range{range_from="1h",range_to="168h",alertname="my_ale
 
 alertsvalidator_validity_range{range_from="168h",range_to="672h",alertname="my_alert",status="valid"}   1 # Valid
 alertsvalidator_validity_range{range_from="168h",range_to="672h",alertname="my_alert",status="invalid"} 0
+
+alertsvalidator_external_api_error{type="rule", server="https://vmalert.cluster.local."} 0
+alertsvalidator_external_api_error{type="query", server="https://vm.cluster.local./select/000/prometheus"} 0
 ```
 
 ## Logs
