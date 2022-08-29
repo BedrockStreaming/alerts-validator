@@ -45,38 +45,47 @@ var (
 	Client HTTPClient
 )
 
-func getRules(server string) Response {
-	url := server + `/api/v1/rules`
+func getRules(server Server) Response {
+	labels := append([]string{"rule", server.RuleURL}, server.LabelValues...)
+	url := server.RuleURL + `/api/v1/rules`
 	req, _ := http.NewRequest("GET", url, nil)
 
 	res, err := Client.Do(req)
 	var response Response
 
 	if err != nil {
-		log.Error().Err(err)
+		apiErrorCounter.WithLabelValues(labels...).Inc()
+		log.Error().Err(err).Str("server", server.RuleURL).Msg("Can't query api")
 		return response
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
 		b, err := io.ReadAll(res.Body)
 		if err != nil {
-			log.Fatal().Err(err).Str("server", server).Msg("Can't get rules, and api response body can't be read")
+			apiErrorCounter.WithLabelValues(labels...).Inc()
+			log.Error().Err(err).Str("server", server.RuleURL).Msg("Can't get rules, and api response body can't be read")
 		} else {
-			log.Fatal().Str("server", server).Str("body", string(b)).Msg("Can't get rules")
+			apiErrorCounter.WithLabelValues(labels...).Inc()
+			log.Error().Str("server", server.RuleURL).Str("body", string(b)).Msg("Can't get rules")
 		}
 	} else {
 		err := json.NewDecoder(res.Body).Decode(&response)
 
 		if err != nil {
-			log.Fatal().Err(err).Str("server", server).Msg("Can't get rules")
+			apiErrorCounter.WithLabelValues(labels...).Inc()
+			log.Error().Err(err).Str("server", server.RuleURL).Msg("Can't decode rules")
+		} else if response.Status == "error" {
+			apiErrorCounter.WithLabelValues(labels...).Inc()
+			log.Error().Str("server", server.RuleURL).Str("error", response.Error).Str("errorType", response.ErrorType).Send()
 		}
 	}
 
 	return response
 }
 
-func existingMetric(query, server string) bool {
-	url := server + `/api/v1/query`
+func existingMetric(query, server Server) bool {
+	labels := append([]string{"query", server.QueryURL}, server.LabelValues...)
+	url := server.QueryURL + `/api/v1/query`
 	payload := `query=` + query
 	req, _ := http.NewRequest("POST", url, strings.NewReader(payload))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -86,19 +95,31 @@ func existingMetric(query, server string) bool {
 	var response Response
 
 	if err != nil {
-		log.Error().Err(err).Str("server", server).Msg("Can't query VM api")
+		apiErrorCounter.WithLabelValues(labels...).Inc()
+		log.Error().Err(err).Str("server", server.QueryURL).Msg("Can't query api")
 		return false
 	}
 	defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(&response)
+	if res.StatusCode != 200 {
+		b, err := io.ReadAll(res.Body)
+		if err != nil {
+			apiErrorCounter.WithLabelValues(labels...).Inc()
+			log.Error().Err(err).Str("server", server.QueryURL).Msg("Can't get rules, and api response body can't be read")
+		} else {
+			apiErrorCounter.WithLabelValues(labels...).Inc()
+			log.Error().Str("server", server.QueryURL).Str("body", string(b)).Msg("Can't get rules")
+		}
+	} else {
+		err = json.NewDecoder(res.Body).Decode(&response)
 
-	if err != nil {
-		log.Fatal().Err(err).Str("server", server).Msg("Can't decode VM api response")
-		return false
-	}
-
-	if response.Status == "error" {
-		log.Fatal().Str("server", server).Str("error", response.Error).Str("errorType", response.ErrorType).Send()
+		if err != nil {
+			apiErrorCounter.WithLabelValues(labels...).Inc()
+			log.Error().Err(err).Str("server", server.QueryURL).Msg("Can't decode api response")
+			return false
+		} else if response.Status == "error" {
+			apiErrorCounter.WithLabelValues(labels...).Inc()
+			log.Error().Str("server", server.QueryURL).Str("error", response.Error).Str("errorType", response.ErrorType).Send()
+		}
 	}
 
 	return len(response.Data.Results) > 0
