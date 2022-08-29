@@ -1,0 +1,110 @@
+{
+    "id": 21,
+    "gridPos": {
+      "h": 7,
+      "w": 12,
+      "x": 12,
+      "y": 8
+    },
+    "type": "timeseries",
+    "title": "Alerts - Newly Valid",
+    "datasource": {
+      "type": "prometheus",
+      "uid": "${datasource}"
+    },
+    "fieldConfig": {
+      "defaults": {
+        "custom": {
+          "drawStyle": "line",
+          "lineInterpolation": "linear",
+          "barAlignment": 0,
+          "lineWidth": 1,
+          "fillOpacity": 0,
+          "gradientMode": "none",
+          "spanNulls": false,
+          "showPoints": "auto",
+          "pointSize": 5,
+          "stacking": {
+            "mode": "none",
+            "group": "A"
+          },
+          "axisPlacement": "auto",
+          "axisLabel": "",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "hideFrom": {
+            "tooltip": false,
+            "viz": false,
+            "legend": false
+          },
+          "thresholdsStyle": {
+            "mode": "off"
+          }
+        },
+        "color": {
+          "mode": "palette-classic"
+        },
+        "mappings": [],
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {
+              "color": "green",
+              "value": null
+            },
+            {
+              "color": "red",
+              "value": 80
+            }
+          ]
+        }
+      },
+      "overrides": []
+    },
+    "options": {
+      "tooltip": {
+        "mode": "single",
+        "sort": "none"
+      },
+      "legend": {
+        "displayMode": "table",
+        "placement": "right",
+        "calcs": [],
+        "width": 800
+      }
+    },
+    "targets": [
+      {
+        "$$hashKey": "object:24",
+        "aggregation": "Last",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "decimals": 2,
+        "displayAliasType": "Warning / Critical",
+        "displayType": "Regular",
+        "displayValueWithAlias": "Never",
+        "editorMode": "code",
+        "expr": "sum(alertsvalidator_validity_range{status=\"valid\"}) by (alertname, alertid) + sum(alertsvalidator_validity_range{status=\"invalid\"}) by (alertname, alertid) offset 168h == 2",
+        "legendFormat": "{{alertname}} - {{alertid}}",
+        "range": true,
+        "refId": "A",
+        "units": "none",
+        "valueHandler": "Number Threshold"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "editorMode": "code",
+        "expr": "count(sum(alertsvalidator_validity_range{status=\"valid\"}) by (alertname, alertid) + sum(alertsvalidator_validity_range{status=\"invalid\"}) by (alertname, alertid) offset 168h == 2)",
+        "hide": false,
+        "legendFormat": "Total of newly valid alerts",
+        "range": true,
+        "refId": "B"
+      }
+    ]
+  }
