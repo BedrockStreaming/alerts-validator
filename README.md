@@ -116,6 +116,28 @@ Some logs are available, they display more informations on alert-validators prev
 }
 ```
 
+## Alerting & Monitoring
+
+You can find a few panels for grafana in `grafana_panels/`.
+
+Example of alerting with alerts-validator metrics:
+
+```yaml
+Groups:
+    Interval:  300s
+    Name:      bedrock-alerts-validator.rules
+    Rules:
+      Alert:  newlyInvalidAlert
+      Annotations:
+        Description:  {{ $labels.alertname }}-{{ $labels.alertid }} alerting rule has been recently detected as invalid by alerts-validator
+        Summary:      Newly Invalid Alert detected
+      Expr:           sum(alertsvalidator_validity_range{status="invalid"}) by (alertname, alertid) + sum(alertsvalidator_validity_range{status="valid"}) by (alertname, alertid) offset 2h == 2
+      For:            1h
+      Labels:
+        Severity:  notice
+```
+
+
 ## Contributors
 
 - [Arthur Zinck](https://github.com/arthurzinck)
