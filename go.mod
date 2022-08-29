@@ -1,4 +1,4 @@
-module t-falconnet/alerts-validator
+module github.com/BedrockStreaming/alerts-validator
 
 go 1.17
 
