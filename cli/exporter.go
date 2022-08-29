@@ -6,7 +6,8 @@ import (
 )
 
 var (
-	gauge *prometheus.GaugeVec
+	gauge           *prometheus.GaugeVec
+	apiErrorCounter *prometheus.CounterVec
 )
 
 func BuildGauge() {
@@ -21,6 +22,16 @@ func BuildGauge() {
 			"range_from",
 			"range_to",
 			"status",
+		}, Conf.LabelKeys...),
+	)
+	apiErrorCounter = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "alertsvalidator_external_api_error",
+			Help: "Are there data fetching errors",
+		},
+		append([]string{
+			"type",
+			"server",
 		}, Conf.LabelKeys...),
 	)
 }
