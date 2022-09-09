@@ -109,7 +109,7 @@ func checkValidity(rule Rule, from, to string, cache map[string]bool, server Ser
 				os.Exit(1)
 			}
 			dur := time.Until(time.Now().Add(dur1).Add(-dur2)).Truncate(time.Minute)
-			check := fmt.Sprintf("present_over_time(%s[%s] offset %s)", vector, dur.String(), from)
+			check := fmt.Sprintf("count(present_over_time(%s[%s] offset %s))", vector, dur.String(), from)
 			_, err = metricsql.Parse(check)
 			if err != nil {
 				log.Error().Err(err).Str("check", check).Msg("Something is wrong with Validity Check Intervals")
