@@ -83,7 +83,7 @@ func getRules(server Server) Response {
 	return response
 }
 
-func existingMetric(query, server Server) bool {
+func existingMetric(query string, server Server) bool {
 	labels := append([]string{"query", server.QueryURL}, server.LabelValues...)
 	url := server.QueryURL + `/api/v1/query`
 	payload := `query=` + query

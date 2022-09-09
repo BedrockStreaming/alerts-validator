@@ -16,7 +16,7 @@ var vectors []string
 func CheckRules(server Server) {
 	for {
 		vectorValidityCache := map[string]bool{}
-		response := getRules(server.RuleURL)
+		response := getRules(server)
 		for _, group := range response.Data.Groups {
 			for _, rule := range group.Rules {
 				if rule.Type != "alerting" {
@@ -116,7 +116,7 @@ func checkValidity(rule Rule, from, to string, cache map[string]bool, server Ser
 				os.Exit(1)
 			}
 			log.Debug().Str("alertname", rule.Name).Str("id", rule.Id).Str("check", check).Send()
-			existingM = existingMetric(check, server.QueryURL)
+			existingM = existingMetric(check, server)
 			// Add vector in cache to avoid checking multiple times the same thing
 			cache[fmt.Sprintf("%s[%s-%s]", vector, from, to)] = existingM
 		}
