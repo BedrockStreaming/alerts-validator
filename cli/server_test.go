@@ -27,7 +27,7 @@ var (
 func Test_existingMetric(t *testing.T) {
 	type args struct {
 		query  string
-		server string
+		server Server
 	}
 	tests := []struct {
 		name     string
@@ -38,8 +38,10 @@ func Test_existingMetric(t *testing.T) {
 		{
 			name: "200 Empty",
 			args: args{
-				query:  "up",
-				server: "https://some.server",
+				query: "up",
+				server: Server{
+					QueryURL: "https://some.server",
+				},
 			},
 			want: false,
 			response: func(*http.Request) (*http.Response, error) {
@@ -57,8 +59,10 @@ func Test_existingMetric(t *testing.T) {
 		{
 			name: "200 Not Empty",
 			args: args{
-				query:  "up",
-				server: "https://some.server",
+				query: "up",
+				server: Server{
+					QueryURL: "https://some.server",
+				},
 			},
 			want: true,
 			response: func(*http.Request) (*http.Response, error) {
@@ -92,7 +96,7 @@ func Test_existingMetric(t *testing.T) {
 
 func Test_getRules(t *testing.T) {
 	type args struct {
-		server string
+		server Server
 	}
 	tests := []struct {
 		name     string
@@ -103,7 +107,9 @@ func Test_getRules(t *testing.T) {
 		{
 			name: "200 Empty",
 			args: args{
-				server: "https://some.server",
+				server: Server{
+					RuleURL: "https://some.server",
+				},
 			},
 			want: Response{},
 			response: func(*http.Request) (*http.Response, error) {
@@ -118,7 +124,9 @@ func Test_getRules(t *testing.T) {
 		{
 			name: "200 Not Empty",
 			args: args{
-				server: "https://some.server",
+				server: Server{
+					RuleURL: "https://some.server",
+				},
 			},
 			want: Response{
 				Status: "success",
